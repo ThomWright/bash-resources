@@ -33,7 +33,7 @@ log() {
   echo -e "${1:-}" >&2
 }
 logT() {
-  echo -e "$(date --utc +'%Y-%m-%dT%H:%M:%SZ') $1" >&2
+  echo -e "$(date -u +'%Y-%m-%dT%H:%M:%SZ') $1" >&2
 }
 
 function cleanup {
