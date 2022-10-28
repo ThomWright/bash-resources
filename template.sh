@@ -3,7 +3,7 @@
 set -o errexit
 set -o pipefail
 set -o nounset
-# set -o xtrace
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 usage() {
   cat <<EOF
