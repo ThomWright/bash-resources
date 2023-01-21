@@ -20,12 +20,13 @@ Dependencies:
 
 Required:
 
-  -a --flag-with-arg       ARG     - A flag with an argument
+  -a --flag-with-arg        ARG         - A flag with an argument.
+  -b --flag-with-multi-args ARG1 ARG2   - A flag with multiple argument.
 
 Optional:
 
-  -o --boolean-flag                - A boolean flag
-  -h --help                        - Print this help and exit
+  -o --boolean-flag                     - A boolean flag.
+  -h --help                             - Print this help and exit.
 EOF
 }
 
@@ -45,6 +46,10 @@ parse_params() {
   # TODO: There might be something better we can do here.
   positional_params=""
 
+  # Set defaults for optional arguments
+  boolean_flag=${boolean_flag:-false}
+  multi=()
+
   while [[ $# -gt 0 ]]; do
     local key="$1"
 
@@ -57,6 +62,12 @@ parse_params() {
         log "Argument for $1 is missing"
         exit 1
       fi
+      ;;
+    -b | --flag-with-multi-args)
+      while [ -n "${2+x}" ] && [ "${2:0:1}" != "-" ]; do
+        multi+=("$2")
+        shift
+      done
       ;;
     -o | --boolean-flag)
       boolean_flag=true
@@ -84,9 +95,6 @@ parse_params() {
       exit 1
     fi
   done
-
-  # Set defaults for optional arguments
-  boolean_flag=${boolean_flag:-false}
 }
 
 # Check any required dependencies exist

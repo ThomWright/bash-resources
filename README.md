@@ -4,17 +4,31 @@ Some resources to help me write good (or at least better) Bash scripts.
 
 Please see the accompanying template.
 
+- [Template](./template.sh) - Template for starting new scripts.
+- [Snippets](./snippets) - Reusable snippets.
+- [Scripts](./scripts/) - A collection of full scripts.
+
 ## Tips
+
+- Use a recent version of Bash.
+  - MacOS (at the time of writing) uses an old version of Bash by default (3.2). Upgrade with e.g. `brew install bash`.
 
 ### Writing scripts
 
-Tips for scripts, as opposed to interactive command line use.
+Tips for writing scripts, as opposed to interactive command line use.
 
 - Use [ShellCheck](https://www.shellcheck.net/).
 - Always prefer long form parameters (e.g. `--long-form`) over short form (e.g. `-l`).
   - This makes scripts much more readable.
 - Prefix variables with `local` inside functions.
   - Variables are globally scoped by default. This reduces the scope to just the function.
+
+### Tricks
+
+- [Variable length arguments list](https://unix.stackexchange.com/questions/444113/correct-way-of-building-variable-length-argument-line-to-external-command-in-bas)
+  - Use an array: `some_cmd "${args[@]}"`
+- [Empty array expansion when using `nounset`](https://stackoverflow.com/questions/7577052/bash-empty-array-expansion-with-set-u)
+  - To support Bash <4.4: `${arr[@]+"${arr[@]}"}`
 
 ## Resources
 
