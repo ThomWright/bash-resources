@@ -177,9 +177,9 @@ run() {
             container: .name,
             cpu_req: .resources.requests.cpu,
             mem_req: .resources.requests.memory,
-          } + if $IGNORE_CPU_LIMIT == false then {
+          } + if $IGNORE_CPU_LIMIT == "false" then {
             cpu_limit: .resources.limits.cpu
-          } else {} end + if $IGNORE_MEM_LIMIT == false then {
+          } else {} end + if $IGNORE_MEM_LIMIT == "false" then {
             mem_limit: .resources.limits.memory
           } else {} end)
         }
