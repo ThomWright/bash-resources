@@ -7,6 +7,6 @@ _remote="$1"
 _url="$2"
 
 cargo fmt --check
-cargo clippy -- --deny "warnings"
+cargo clippy --all-targets --all-features -- --deny warnings
 
 exit 0
