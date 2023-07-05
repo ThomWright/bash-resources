@@ -3,7 +3,7 @@
 set -o errexit
 set -o pipefail
 set -o nounset
-# set -o xtrace
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 # TODO: use flags instead of env vars?
 POSTGRES_DOCKER_VERSION="${POSTGRES_DOCKER_VERSION:=13.6-alpine}"
@@ -81,24 +81,31 @@ run() {
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
   cd "${SCRIPT_DIR}"
 
-  if [ "$replace_container" = "true" ]; then
-    log "Remove existing container (if exists)"
-    docker rm -f "${POSTGRES_CONTAINER_NAME}" || true
+  if [ ! "$(docker ps --all --quiet --filter name="${POSTGRES_CONTAINER_NAME}")" ]; then
+    if [ "$(docker ps --all --quiet --filter status=exited --filter name="${POSTGRES_CONTAINER_NAME}")" ]; then
+      if [ "$replace_container" = "true" ]; then
+        log "Remove existing container"
+        docker rm --force "${POSTGRES_CONTAINER_NAME}" || true
+      else
+        log "Start existing container"
+        docker start "${POSTGRES_CONTAINER_NAME}"
+      fi
+    fi
+
+    log "Start container"
+    docker run \
+      --env POSTGRES_USER="${POSTGRES_ROOT_USER}" \
+      --env POSTGRES_PASSWORD="${POSTGRES_ROOT_PASSWORD}" \
+      --env POSTGRES_PORT="${POSTGRES_PORT}" \
+      --env POSTGRES_DB="${POSTGRES_ROOT_DB}" \
+      --publish "${POSTGRES_PORT}":5432 \
+      --rm \
+      --name "${POSTGRES_CONTAINER_NAME}" \
+      --detach postgres:"${POSTGRES_DOCKER_VERSION}" \
+      postgres -N 1000 # -N max_connections
   fi
 
-  log "Start container"
-  docker start "${POSTGRES_CONTAINER_NAME}" 2>/dev/null || docker run \
-    -e POSTGRES_USER="${POSTGRES_ROOT_USER}" \
-    -e POSTGRES_PASSWORD="${POSTGRES_ROOT_PASSWORD}" \
-    -e POSTGRES_PORT="${POSTGRES_PORT}" \
-    -e POSTGRES_DB="${POSTGRES_ROOT_DB}" \
-    -p "${POSTGRES_PORT}":5432 \
-    --rm \
-    --name "${POSTGRES_CONTAINER_NAME}" \
-    -d postgres:"${POSTGRES_DOCKER_VERSION}" \
-    postgres -N 1000 # -N max_connections
-
-  local psql_args=( -h localhost -U "${POSTGRES_ROOT_USER}" -p "${POSTGRES_PORT}" -d "${POSTGRES_ROOT_DB}" )
+  local psql_args=(-h localhost -U "${POSTGRES_ROOT_USER}" -p "${POSTGRES_PORT}" -d "${POSTGRES_ROOT_DB}")
 
   log "Wait until Postgres is available..."
   until PGPASSWORD=${POSTGRES_ROOT_PASSWORD} psql "${psql_args[@]}" -c '\q' 2>/dev/null; do
