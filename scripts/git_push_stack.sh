@@ -7,7 +7,7 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 usage() {
   cat <<EOF
-Push a stack of branches.
+Push a stack of branches matching a pattern.
 
 USAGE:
 
@@ -83,6 +83,15 @@ parse_params() {
 
 parse_params "$@"
 
-git for-each-ref --format='%(refname:short)' refs/heads/ \
-  | grep "$branch_pattern" \
-  | xargs git push --atomic --set-upstream origin
+branches=$(git for-each-ref --format='%(refname:short)' refs/heads/ | grep "$branch_pattern")
+
+log "Pushing branches:"
+log "$(echo "${branches}" | sed 's/^/  /')"
+
+readarray -t branches_array <<<"$branches"
+
+args=()
+if [ "$force" == "true" ]; then args+=( '--force' ); fi
+args=( "${args[@]}" "${branches_array[@]}" )
+
+git push --atomic --set-upstream origin "${args[@]}"
