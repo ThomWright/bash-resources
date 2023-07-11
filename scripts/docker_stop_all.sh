@@ -8,5 +8,6 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 # Sends SIGTERM to all running containers
 
 running_ids=$(docker ps -q)
-IFS="," read -r -a running_ids_array <<<"$running_ids"
-docker stop "${running_ids_array[@]}"
+readarray -t running_ids_array <<<"$running_ids"
+
+docker stop ${running_ids_array[@]+"${running_ids_array[@]}"}
